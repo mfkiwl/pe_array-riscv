@@ -9,9 +9,9 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: Instruction Decoder & Feedback Logics
 // 
-// Dependencies: 
+// Dependencies: 36 LUTs, 83 FFs (meet 600MHz)
 // 
 // Revision:
 // Revision 0.01 - File Created
@@ -21,10 +21,11 @@
 `include "parameters.vh"
 
 module control(
-    clk, din_ld, din_wb, inst_v, inst, dout_v, dout, alumode, inmode, opmode, cea2, ceb2, usemult
+    clk, din_ld_v, din_ld, din_wb, inst_v, inst, dout_v, dout, alumode, inmode, opmode, cea2, ceb2, usemult
     );
     
 input clk;
+input din_ld_v;
 input [`DATA_WIDTH*2-1:0] din_ld; // 32-bit data
 input [`DATA_WIDTH*2-1:0] din_wb; // 32-bit data
 input inst_v;
@@ -43,7 +44,7 @@ reg [`DATA_WIDTH*2-1:0] dout; // 32-bit
 
 /*** Control Logics for Data Ouput Valid Signal ***/
 wire wb;
-assign wb = inst_v ? inst[`INST_WIDTH-1] : 0; // The most significant 1-bit select input of the PE
+assign wb = inst_v ? 1 : 0; // inst[`INST_WIDTH-1] : 0; // The most significant 1-bit select input of the PE
 
 parameter DELAY = 5; 
 reg [DELAY-1:0] shift_reg = 0; 
@@ -56,16 +57,16 @@ assign dout_v = shift_reg[DELAY-1]; // delayed_signal
 
 //assign dout = dout_v ? din_wb : din_ld;
 
-always @ (posedge clk) 
-if (dout_v)
-    dout <= din_wb; // write back
-else
-    dout <= din_ld; // load data
-    
+always @ (posedge clk) begin
+    if (din_ld_v)
+        dout <= din_ld; // load data
+    if (dout_v)
+        dout <= din_wb; // write back
+end
 
 /***************** INSTRUCTION DECODE***************/	 
 wire[2:0] opcode;
-assign opcode = inst[26:24];
+assign opcode = inst[31:29]; // inst[26:24]; 
 
 reg [`ALUMODE_WIDTH*4-1:0] alumode = 0; // 4-bit * 4
 reg [`INMODE_WIDTH*4-1:0]  inmode = 0;  // 5-bit * 4

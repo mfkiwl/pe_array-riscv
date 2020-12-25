@@ -3,15 +3,15 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 31.05.2020 13:37:06
+// Create Date: 13.10.2020 18:47:18
 // Design Name: 
-// Module Name: pe
+// Module Name: pe_simd
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: Single PE with data forwarding support
+// Description: Single PE for 32-bit complex operations
 // 
-// Dependencies: 111 LUTs, 171 FFs, 1.5 BRAMs, 4 DSPs (meet 600MHz)
+// Dependencies: 108 LUTs, 134 FFs, 1.5 BRAMs, 4 DSPs (meet 600MHz)
 // 
 // Revision:
 // Revision 0.01 - File Created
@@ -20,33 +20,19 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "parameters.vh"
 
-module pe( 
-    clk, rst, din_pe_v, din_pe, din_tx_v, din_tx, inst_in_v, inst_in, alpha_v, 
-    dout_pe_v, dout_pe, dout_tx_v, dout_tx
-//    , inst_out_v, inst_out 
+module pe_simd( 
+    clk, rst, din_v, din_pe, inst_in_v, inst_in, dout_v, dout_pe
     );
     
 input  clk;
 input  rst;
-input  din_pe_v;
+input  din_v;
 input  [`DATA_WIDTH*2-1:0] din_pe;
-input  din_tx_v;
-input  [`DATA_WIDTH*2-1:0] din_tx;
 input  inst_in_v;
 input  [`INST_WIDTH-1:0] inst_in;
-input  alpha_v;
 
-output dout_pe_v;
+output dout_v;
 output [`DATA_WIDTH*2-1:0] dout_pe;
-output dout_tx_v;
-output [`DATA_WIDTH*2-1:0] dout_tx;
-//output reg inst_out_v;
-//output reg [`INST_WIDTH-1:0] inst_out;
-
-reg dout_pe_v;
-reg [`DATA_WIDTH*2-1:0] dout_pe;
-reg dout_tx_v;
-reg [`DATA_WIDTH*2-1:0] dout_tx;
 
 wire inst_out_v;
 wire [`INST_WIDTH-1:0] inst_pc; // instructions triggered by program counter
@@ -61,47 +47,6 @@ wire [3:0] usemult; // 1-bit * 4
 wire [`DATA_WIDTH*2-1:0] dout_ctrl;
 wire [`DATA_WIDTH*2-1:0] rdata0, rdata1; 
 wire [`DATA_WIDTH*2-1:0] dout_alu;
-wire dout_alu_v;
-
-//reg shift_v; // triggered by the negedge of ctrl signal
-//reg load_v;
-
-//wire[2:0] opcode;
-//assign opcode = inst_pc[31:29]; 
-reg [2:0] opcode; 
-always @ (posedge clk) 
-    opcode <= inst_pc[31:29]; 
-
-wire tx_flag;
-assign tx_flag = dout_alu_v ? 1 : 0;
-
-//reg tx_flag = 0;
-//always @ (posedge clk) 
-//if (dout_alu_v) begin
-//    tx_flag <= 1;
-//end
-//else
-//    tx_flag <= 0;
-
-always @ (posedge clk) begin
-    if (tx_flag) begin // forward partial alpha
-        dout_tx_v <= 1;
-        dout_tx   <= dout_alu;
-    end
-    else begin
-        dout_tx_v <= 0;
-        dout_tx   <= 32'hxxxxxxxx; 
-    end
-    if (alpha_v) begin // output alpha (alpha_v = 1 when in last iteration)
-        dout_pe_v <= 1;
-        dout_pe   <= dout_alu; 
-    end
-end
-
-//always @ (posedge clk) begin
-//    inst_out_v <= inst_in_v;
-//    inst_out <= inst_in;
-//end
 
 parameter DELAY = 14;
 reg shift_v = 0; 
@@ -111,6 +56,41 @@ always @ (posedge clk) begin
 end
 wire shift_v_d;
 assign shift_v_d = shift_reg_v[DELAY-1]; // valid signal for shift registers
+
+/*** shift register array for din_pe ***/
+reg [`REG_ADDR_WIDTH-1:0] dc = 0; // data counter for shift_reg
+reg [`DATA_WIDTH*2-1:0] shift_reg_data [0:`REG_NUM-1]; 
+reg [`DATA_WIDTH*2-1:0] din_ctrl;
+reg [`REG_ADDR_WIDTH-1:0] addr = 0;
+integer i;
+always @ (posedge clk) begin 
+    if (din_v && dc <= `REG_NUM-1) begin  // should last for 32 cycles
+        for(i = `REG_NUM-1; i > 0; i = i-1) begin
+            shift_reg_data[i] <= shift_reg_data[i-1];
+        end
+        din_ctrl <= din_pe; // MUX
+        shift_reg_data[0] <= din_pe;
+        dc <= dc + 1;
+        shift_v <= 1;
+    end
+    else if (din_v && dc > `REG_NUM-1) begin
+        din_ctrl <= shift_reg_data[2**`REG_ADDR_WIDTH-addr]; // MUX
+        addr <= addr + 1; // MUX
+        shift_v <= 0;
+//        dc <= 0;
+    end
+    else if (shift_v_d) begin // should last for 32 cycles
+        for(i = `REG_NUM-1; i > 0; i = i-1) begin
+            shift_reg_data[i] <= shift_reg_data[i-1];
+        end
+        shift_reg_data[0] <= din_pe;
+    end
+    else begin
+        din_ctrl <= 0; // MUX
+        shift_v <= 0;
+    end
+        
+end
 
 
 // Instruction Memory
@@ -126,13 +106,12 @@ inst_mem IMEM(
 // Control Logics & Decoder
 control CTRL(
     .clk(clk),
-    .din_ld_v(din_pe_v), 
-    .din_ld(din_pe), 
-    .din_wb(dout_alu), 
+    .din_ld(din_ctrl), 
+    .din_wb(dout_pe), 
     .inst_v(inst_out_v),
     .inst(inst_pc), // instructions triggered by program counter
-    .dout_v(dout_alu_v),
-    .dout(dout_ctrl), // data output of the controller
+    .dout_v(dout_v),
+    .dout(dout_ctrl), // input data of DMEM
     .alumode(alumode), 
     .inmode(inmode), 
     .opmode(opmode), 
@@ -147,44 +126,32 @@ control CTRL(
 
 reg wren, rden; // register write/read enable signal to synchronize with dout_ctrl
 reg [`REG_ADDR_WIDTH-1:0] dmem_count = 0; // counter for data memory
-
 always @ (posedge clk) begin
-    if (din_pe_v && dmem_count <= `REG_NUM*2-1) begin
+    if (din_v && dmem_count <= `REG_NUM*2-1) begin
         wren <= 1;
         dmem_count <= dmem_count + 1;
     end
-    else begin
+    else
         wren <= 0;
-        dmem_count <= 0;
-    end  
+    
     if (inst_out_v)
         rden <= 1; // inst_pc[`INST_WIDTH-5]; 
     else
         rden <= 0;
 end
 
-//reg [`DATA_WIDTH*2-1:0] din_comp;
-//always @ (posedge clk) 
-//    if (wren)
-//        din_comp <= dout_ctrl;
-
-wire [`DATA_WIDTH*2-1:0] din_comp;
-assign din_comp = wren ? dout_ctrl : 32'hxxxxxxxx;  
-
 // Data Memory
 data_mem DMEM(
     .clk(clk), 
     .rst(rst), 
-    .wea(wren), // valid of din_comp
-    .web(din_tx_v), // valid of din_tx
-    .dina(din_comp), // data for computation
-    .dinb(din_tx), // data transmitted from previous PE
-    .wben(dout_alu_v), 
+    .wren(wren), // valid for din_pe
+    .wben(dout_v), // valid for dout_pe
     .rden(rden), 
     .inst_v(inst_out_v),
     .inst(inst_pc), // instructions triggered by program counter
-    .douta(rdata0),
-    .doutb(rdata1)
+    .wdata(dout_ctrl), 
+    .rdata0(rdata0),
+    .rdata1(rdata1)
     );
 
 // ALU for Complex Data
@@ -199,7 +166,7 @@ complex_alu ALU(
     .usemult(usemult),
     .din_1(rdata0), 
     .din_2(rdata1), 
-    .dout(dout_alu) 
+    .dout(dout_pe) 
     );    
     
 endmodule
