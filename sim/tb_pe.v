@@ -111,9 +111,9 @@ module tb_pe;
 		#20; // inst_in_v = 1; inst_in = 64'h0_0_0000000_0_03_00_00; // din_pe
 		#20; // inst_in_v = 1; inst_in = 64'h0_0_0000000_0_04_00_00; // din_pe
 		#20; // inst_in_v = 1; inst_in = 64'h0_0_0000000_0_05_00_00; // din_pe
-		#20; inst_in_v = 1; inst_in = 32'h60_01_00_80; // CMPLX_MULT 
-		#20; inst_in_v = 1; inst_in = 32'h60_03_02_81; // CMPLX_MULT 
-		#20; inst_in_v = 1; inst_in = 32'h60_05_04_82; // CMPLX_MULT 
+		#20; inst_in_v = 1; inst_in = 32'h80_01_00_80; // CMPLX_MULT (opcode = 100)
+		#20; inst_in_v = 1; inst_in = 32'h80_03_02_81; // CMPLX_MULT (opcode = 100)
+		#20; inst_in_v = 1; inst_in = 32'h80_05_04_82; // CMPLX_MULT (opcode = 100)
 		
 //		#20; inst_in_v = 0; inst_in = 0; din_v = 0;
 //		#20; inst_in_v = 0; inst_in = 0; din_v = 0;
@@ -125,14 +125,14 @@ module tb_pe;
 //		#20; inst_in_v = 0; inst_in = 0; din_v = 1; din_ld = 32'd11; din_pe = 32'h000b_0009; // 11 + j*9
 
         // Load the data
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 0;
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 0;
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 1; din_pe = 32'h0004_0002; // 4 + j*2 
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 1; din_pe = 32'h0003_0001; // 3 + j*1
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 1; din_pe = 32'h0008_0006; // 8 + j*6 
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 1; din_pe = 32'h0007_0005; // 7 + j*5 
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 1; din_pe = 32'h000c_000a; // 12 + j*10
-		#20; inst_in_v = 0; inst_in = 0; din_pe_v = 1; din_pe = 32'h000b_0009; // 11 + j*9
+		#20; inst_in_v = 0; din_pe_v = 0; inst_in = 32'hxx_xx_xx_xx;
+		#20; inst_in_v = 0; din_pe_v = 0;
+		#20; inst_in_v = 0; din_pe_v = 1; din_pe = 32'h0004_0002; // 4 + j*2 
+		#20; inst_in_v = 0; din_pe_v = 1; din_pe = 32'h0003_0001; // 3 + j*1
+		#20; inst_in_v = 0; din_pe_v = 1; din_pe = 32'h0008_0006; // 8 + j*6 
+		#20; inst_in_v = 0; din_pe_v = 1; din_pe = 32'h0007_0005; // 7 + j*5 
+		#20; inst_in_v = 0; din_pe_v = 1; din_pe = 32'h000c_000a; // 12 + j*10
+		#20; inst_in_v = 0; din_pe_v = 1; din_pe = 32'h000b_0009; // 11 + j*9
 		
 //		#20; din_v = 0; din_ld = 32'd0;  din_pe = 0; 
 //		#20; din_v = 0; din_ld = 32'd0;  din_pe = 0; 
@@ -145,6 +145,11 @@ module tb_pe;
 		#20; din_pe_v = 0; din_pe = 4; 
 		#20; din_pe_v = 0; din_pe = 5; 
 		#20; din_pe_v = 0; din_pe = 6; 
+		
+		#200;
+		#20; inst_in_v = 1; inst_in = 32'hA1_01_00_00; // MULADD (opcode = 101 & Read ROM[1])
+		#20; inst_in_v = 1; inst_in = 32'hA2_03_02_00; // MULADD (opcode = 101 & Read ROM[2])
+		#20; inst_in_v = 0; inst_in = 32'hxx_xx_xx_xx;
 						
 		#1000;
 		

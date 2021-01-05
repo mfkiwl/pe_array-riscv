@@ -46,7 +46,7 @@ reg [`DATA_WIDTH*2-1:0] dout; // 32-bit
 wire wb;
 assign wb = inst_v ? 1 : 0; // inst[`INST_WIDTH-1] : 0; // The most significant 1-bit select input of the PE
 
-parameter DELAY = 5; 
+parameter DELAY = 6; // 5; 
 reg [DELAY-1:0] shift_reg = 0; 
 
 always @ (posedge clk) begin 
@@ -65,8 +65,12 @@ always @ (posedge clk) begin
 end
 
 /***************** INSTRUCTION DECODE***************/	 
-wire[2:0] opcode;
-assign opcode = inst[31:29]; // inst[26:24]; 
+//wire[2:0] opcode;
+//assign opcode = inst[31:29]; // inst[26:24]; 
+
+reg [2:0] opcode;
+always @ (posedge clk) 
+    opcode <= inst[31:29]; // inst[26:24]; 
 
 reg [`ALUMODE_WIDTH*4-1:0] alumode = 0; // 4-bit * 4
 reg [`INMODE_WIDTH*4-1:0]  inmode = 0;  // 5-bit * 4
@@ -81,19 +85,15 @@ case (opcode[2:0])
 	            alumode <= 16'b0000_0000_0000_0000; 
 	            inmode <= 20'b00000_00000_00000_00000; 
 	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b1111; 
-	            ceb2 <= 4'b1111; 
-	            usemult <= 4'b0000; 
+	            cea2 <= 4'b1111; ceb2 <= 4'b1111; usemult <= 4'b0000; 
              end
 /*`SUB*/ 3'b010: begin 
 	            alumode <= 16'b0011_0011_0011_0011; 
 	            inmode <= 20'b00000_00000_00000_00000; 
 	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b1111; 
-	            ceb2 <= 4'b1111; 
-	            usemult <= 4'b0000; 
+	            cea2 <= 4'b1111; ceb2 <= 4'b1111; usemult <= 4'b0000; 
 	         end
-/*`MUL*/ 3'b011: begin 
+/*`MUL*/ 3'b100: begin  // verified!
 	            alumode <= 16'b0000_0000_0000_0000; 
 	            inmode <= 20'b10001_10001_10001_10001; 
 	            opmode <= 28'b0000101_0000101_0000101_0000101; 
@@ -101,19 +101,23 @@ case (opcode[2:0])
 	            ceb2 <= 4'b0000; 
 	            usemult <= 4'b1111; 
 	         end
-/*`ADDI*/ 3'b101: begin 
+/*`MULADD*/ 3'b101: begin  // testing
 	            alumode <= 16'b0000_0000_0000_0000; 
-	            inmode <= 20'b00000_00000_00000_00000; 
+	            inmode <= 20'b10001_00000_10001_00000; 
 	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b1111; ceb2 <= 4'b1111; usemult <= 4'b0000; 
+	            cea2 <= 4'b0000; 
+	            ceb2 <= 4'b0000; 
+	            usemult <= 4'b1111; 
 	          end
-/*`SUBI*/ 3'b110: begin 
+/*`MULSUB*/ 3'b110: begin  // testing
 	            alumode <= 16'b0011_0011_0011_0011; 
-	            inmode <= 20'b00000_00000_00000_00000; 
+	            inmode <= 20'b10001_00000_10001_00000; 
 	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b1111; ceb2 <= 4'b1111; usemult <= 4'b0000; 
+	            cea2 <= 4'b0000; 
+	            ceb2 <= 4'b0000; 
+	            usemult <= 4'b1111; 
 	          end
-/*`MULI*/ 3'b111: begin 
+/*`MAX*/ 3'b111: begin 
 	            alumode <= 16'b0000_0000_0000_0000; 
 	            inmode <= 20'b10001_10001_10001_10001; 
 	            opmode <= 28'b0000101_0000101_0000101_0000101; 
@@ -126,6 +130,5 @@ case (opcode[2:0])
 	            cea2 <= 4'b0000; ceb2 <= 4'b0000; usemult <= 4'b0000; 
 	          end
 endcase
-
     
 endmodule
