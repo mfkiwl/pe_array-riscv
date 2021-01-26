@@ -93,7 +93,7 @@ case (opcode[2:0])
 	            opmode <= 28'b0110011_0110011_0110011_0110011; 
 	            cea2 <= 4'b1111; ceb2 <= 4'b1111; usemult <= 4'b0000; 
 	         end
-/*`MUL*/ 3'b100: begin  // verified!
+/*`MUL*/ 3'b100: begin  // (MUL, MUL, MUL, MUL) verified!
 	            alumode <= 16'b0000_0000_0000_0000; 
 	            inmode <= 20'b10001_10001_10001_10001; 
 	            opmode <= 28'b0000101_0000101_0000101_0000101; 
@@ -101,26 +101,26 @@ case (opcode[2:0])
 	            ceb2 <= 4'b0000; 
 	            usemult <= 4'b1111; 
 	         end
-/*`MULADD*/ 3'b101: begin  // testing
-	            alumode <= 16'b0000_0000_0000_0000; 
-	            inmode <= 20'b10001_00000_10001_00000; 
-	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b0000; 
-	            ceb2 <= 4'b0000; 
-	            usemult <= 4'b1111; 
-	          end
-/*`MULSUB*/ 3'b110: begin  // testing
-	            alumode <= 16'b0011_0000_0011_0000; 
-	            inmode <= 20'b10001_00000_10001_00000; 
-	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b0000; 
-	            ceb2 <= 4'b0000; 
-	            usemult <= 4'b1111; 
-	          end
-/*`MAX*/ 3'b111: begin 
+/*`MULADD*/ 3'b101: begin  // (MULADD, MUL, MULADD, MUL) verified!
 	            alumode <= 16'b0000_0000_0000_0000; 
 	            inmode <= 20'b10001_10001_10001_10001; 
-	            opmode <= 28'b0000101_0000101_0000101_0000101; 
+	            opmode <= 28'b0110101_0000101_0110101_0000101; 
+	            cea2 <= 4'b0000; 
+	            ceb2 <= 4'b0000; 
+	            usemult <= 4'b1111; 
+	          end
+/*`MULSUB*/ 3'b110: begin  // (MULSUB, MUL, MULSUB, MUL) verified!
+	            alumode <= 16'b0011_0000_0011_0000; 
+	            inmode <= 20'b10001_10001_10001_10001; 
+	            opmode <= 28'b0110101_0000101_0110101_0000101; 
+	            cea2 <= 4'b0000; 
+	            ceb2 <= 4'b0000; 
+	            usemult <= 4'b1111; 
+	          end
+/*`MAX*/ 3'b111: begin // to be testing!
+	            alumode <= 16'b1100_1100_1100_1100; 
+	            inmode <= 20'b00000_00000_00000_00000; 
+	            opmode <= 28'b0110011_0110011_0110011_0110011; 
 	            cea2 <= 4'b0000; ceb2 <= 4'b0000; usemult <= 4'b1111; 
 	          end
 /*`LOAD*/ default: begin 
