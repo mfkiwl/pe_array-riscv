@@ -21,7 +21,7 @@
 `include "parameters.vh"
 
 module data_mem(
-    clk, rst, wea, web, dina, dinb, wben, rden, inst_v, inst, douta, doutb
+    clk, rst, wea, web, dina, dinb, wben, rden, inst_v, inst, shift_v, douta, doutb
     );
  
 input clk; 
@@ -34,6 +34,7 @@ input wben;
 input rden;
 input inst_v;
 input [`INST_WIDTH-1:0] inst;
+input shift_v;
 
 output [`DATA_WIDTH*2-1:0] douta;
 output [`DATA_WIDTH*2-1:0] doutb;
@@ -47,7 +48,7 @@ output [`DATA_WIDTH*2-1:0] doutb;
 reg [`DM_ADDR_WIDTH-1:0] raddra = 0;
 reg [`DM_ADDR_WIDTH-1:0] raddrb = 0;
 reg [`DM_ADDR_WIDTH-1:0] waddra = 0;
-reg [`DM_ADDR_WIDTH-1:0] waddrb = 8'h8F;
+reg [`DM_ADDR_WIDTH-1:0] waddrb = 8'h80; // alpha[k-1] address: 128
 reg [`DM_ADDR_WIDTH-1:0] wb_addr = 0;
 reg [`DM_ADDR_WIDTH-1:0] wb_addr_d1, wb_addr_d2, wb_addr_d3, wb_addr_d4;
 reg wben_r; // ADD
@@ -61,7 +62,7 @@ always @(posedge clk) begin
     
     if (rst) begin
         waddra <= 0;
-        waddrb = 8'h8F; // Add 
+        waddrb = 8'h80; // Add 
         raddra <= 0;
         raddrb <= 0;
     end
@@ -72,14 +73,17 @@ always @(posedge clk) begin
         else if (wben) begin // write enable for write back 
             waddra <= wb_addr_d4; 
         end
-        else if (inst_v) begin
+        else if (shift_v) begin // write enable for shift
+            raddra <= raddra + 1;
+        end
+        else if (web) begin // // write enable for tx
+            waddrb <= waddrb + 1;
+        end
+        
+        if (inst_v) begin // read ports
             raddrb <= inst[23:16]; // source 2
             raddra <= inst[15:8]; // source 1
             wb_addr <= inst[7:0]; // destination
-        end
-        
-        if (web) begin
-            waddrb <= waddrb + 1;
         end
     end 
 end

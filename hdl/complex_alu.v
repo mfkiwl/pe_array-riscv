@@ -39,7 +39,7 @@ input  [`DATA_WIDTH*2-1:0] din_3; // 32-bit
 
 output [`DATA_WIDTH*2-1:0] dout; // 32-bit
 
-/*** Input Map ***/
+
 //reg [`PORTB_WIDTH-1:0] b_1, b_2, b_3, b_4; // 18-bit
 //reg [`PORTA_WIDTH-1:0] a_1, a_2, a_3, a_4; // 30-bit
 //reg [`PORTC_WIDTH-1:0] c_1, c_2, c_3, c_4; // 48-bit
@@ -103,7 +103,7 @@ output [`DATA_WIDTH*2-1:0] dout; // 32-bit
 ////        3'b111: <output> <= <input8>;
 //      endcase
 
-
+/*** Complex ALU Input Map ***/
 wire [`PORTB_WIDTH-1:0] b_1, b_2, b_3, b_4; // 18-bit
 wire [`PORTA_WIDTH-1:0] a_1, a_2, a_3, a_4; // 30-bit
 wire [`PORTC_WIDTH-1:0] c_1, c_2, c_3, c_4; // 48-bit
@@ -123,8 +123,24 @@ assign b_4 = din_1[`DATA_WIDTH-1:0]; // Wq
 assign a_4 = din_2[`DATA_WIDTH*2-1:`DATA_WIDTH]; // c
 assign c_4 = 16'd0;
 
-assign i_out = (opcode == 3'b110) ? (p_o_1 + p_o_2) : (p_o_1 - p_o_2);
-assign q_out = (opcode == 3'b110) ? (p_o_3 - p_o_4) : (p_o_3 + p_o_4);
+reg mux; // Add 5-state pipeline to match with dout_alu
+reg [2:0] opcode_d1, opcode_d2, opcode_d3, opcode_d4;
+always @ (posedge clk) begin
+    opcode_d1 <= opcode;
+    opcode_d2 <= opcode_d1;
+    opcode_d3 <= opcode_d2;
+    opcode_d4 <= opcode_d3;
+    if (opcode_d4 == 3'b110) 
+        mux <= 1; 
+    else
+        mux <= 0;
+end
+
+// MULSUB(110); MULADD(111) and MUL(100) share the same input map!
+assign i_out = mux ? (p_o_1 + p_o_2) : (p_o_1 - p_o_2); 
+assign q_out = mux ? (p_o_3 - p_o_4) : (p_o_3 + p_o_4); 
+//assign i_out = (opcode == 3'b110) ? (p_o_1 + p_o_2) : (p_o_1 - p_o_2); 
+//assign q_out = (opcode == 3'b110) ? (p_o_3 - p_o_4) : (p_o_3 + p_o_4); 
 //assign i_out = p_o_1 - p_o_2; // (a*c - b*d) round to 16-bit 
 //assign q_out = p_o_3 + p_o_4; // (b*c + a*d) round to 16-bit 
 assign dout = {i_out, q_out}; // 32-bit
@@ -136,6 +152,7 @@ reg cea2_1, cea2_2, cea2_3, cea2_4;
 reg ceb2_1, ceb2_2, ceb2_3, ceb2_4;
 reg usemult_1, usemult_2, usemult_3, usemult_4;
 
+// one pipeline for the instructions after decoder
 always @ (posedge clk) begin
     alumode_1 <= alumode[`ALUMODE_WIDTH*4-1:`ALUMODE_WIDTH*3]; 
     alumode_2 <= alumode[`ALUMODE_WIDTH*3-1:`ALUMODE_WIDTH*2]; 

@@ -21,7 +21,7 @@
 `include "parameters.vh"
 
 module control(
-    clk, din_ld_v, din_ld, din_wb, inst_v, inst, dout_v, dout, alumode, inmode, opmode, cea2, ceb2, usemult
+    clk, din_ld_v, din_ld, din_wb, inst_v, opcode, dout_v, dout, alumode, inmode, opmode, cea2, ceb2, usemult
     );
     
 input clk;
@@ -29,7 +29,8 @@ input din_ld_v;
 input [`DATA_WIDTH*2-1:0] din_ld; // 32-bit data
 input [`DATA_WIDTH*2-1:0] din_wb; // 32-bit data
 input inst_v;
-input [`INST_WIDTH-1:0] inst; // 64-bit instruction
+input [2:0] opcode;
+//input [`INST_WIDTH-1:0] inst; // 32-bit instruction
 
 output dout_v;
 output [`DATA_WIDTH*2-1:0] dout; // 32-bit
@@ -44,9 +45,9 @@ reg [`DATA_WIDTH*2-1:0] dout; // 32-bit
 
 /*** Control Logics for Data Ouput Valid Signal ***/
 wire wb;
-assign wb = inst_v ? 1 : 0; // inst[`INST_WIDTH-1] : 0; // The most significant 1-bit select input of the PE
+assign wb = inst_v ? 1 : 0; // inst[`INST_WIDTH-1] : 0; // The most significant 1-bit indicates write-back
 
-parameter DELAY = 6; // 5; 
+parameter DELAY = 6; // 6-stage pipeline
 reg [DELAY-1:0] shift_reg = 0; 
 
 always @ (posedge clk) begin 
@@ -68,9 +69,9 @@ end
 //wire[2:0] opcode;
 //assign opcode = inst[31:29]; // inst[26:24]; 
 
-reg [2:0] opcode;
-always @ (posedge clk) 
-    opcode <= inst[31:29]; // inst[26:24]; 
+//reg [2:0] opcode;
+//always @ (posedge clk) 
+//    opcode <= inst[31:29]; // inst[26:24]; 
 
 reg [`ALUMODE_WIDTH*4-1:0] alumode = 0; // 4-bit * 4
 reg [`INMODE_WIDTH*4-1:0]  inmode = 0;  // 5-bit * 4
@@ -80,7 +81,7 @@ reg [3:0]  ceb2 = 0;
 reg [3:0]  usemult = 0;
 
 always @ (posedge clk) 
-case (opcode[2:0])
+case (opcode)
 /*`ADD*/ 3'b001: begin 
 	            alumode <= 16'b0000_0000_0000_0000; 
 	            inmode <= 20'b00000_00000_00000_00000; 
@@ -117,7 +118,7 @@ case (opcode[2:0])
 	            ceb2 <= 4'b0000; 
 	            usemult <= 4'b1111; 
 	          end
-/*`MAX*/ 3'b111: begin // to be testing!
+/*`MAX*/ 3'b111: begin // to be tested!
 	            alumode <= 16'b1100_1100_1100_1100; 
 	            inmode <= 20'b00000_00000_00000_00000; 
 	            opmode <= 28'b0110011_0110011_0110011_0110011; 
