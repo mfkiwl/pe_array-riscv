@@ -51,7 +51,7 @@ output [3:0] usemult; // 1-bit * 4
 reg [`DATA_WIDTH*2-1:0] dout; // 32-bit
 
 /*** Control Logics for Data Ouput Valid Signal ***/
-parameter DELAY = 6; // 6-stage pipeline
+parameter DELAY = 8; // 6-stage pipeline // 6->8
 reg [DELAY-1:0] inst_v_reg = 0; 
 
 always @ (posedge clk) begin 
@@ -131,11 +131,13 @@ case (opcode)
 	            ceb2 <= 4'b0000; 
 	            usemult <= 4'b1111; 
 	          end
-/*`MAX*/ 3'b111: begin // to be tested!
-	            alumode <= 16'b1100_1100_1100_1100; 
-	            inmode <= 20'b00000_00000_00000_00000; 
-	            opmode <= 28'b0110011_0110011_0110011_0110011; 
-	            cea2 <= 4'b0000; ceb2 <= 4'b0000; usemult <= 4'b1111; 
+/*`MAX*/ 3'b111: begin // (a*a + b*b) ?> (c*c) + (d*d) to be tested!
+	            alumode <= 16'b0000_0000_0000_0000; 
+	            inmode <= 20'b10001_10001_10001_10001; 
+	            opmode <= 28'b0000101_0000101_0000101_0000101; 
+	            cea2 <= 4'b0000; 
+	            ceb2 <= 4'b0000; 
+	            usemult <= 4'b1111; 
 	          end
 /*`LOAD*/ default: begin 
 	            alumode <= 16'b0000_0000_0000_0000; 
