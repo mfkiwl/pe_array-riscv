@@ -80,7 +80,7 @@ assign data_out = rom_out;
 //            8'b00011110: rom_out <= 32'hA357535B;
 //            8'b00011111: rom_out <= 32'hC357535F;
             // SCD Instructions
-            // 32 element-wise complex multiplications
+            // 32 element-wise complex multiplications (verified!)
             8'b00000000: rom_out <= 32'h80200040; // mul 
             8'b00000001: rom_out <= 32'h80210141; 
             8'b00000010: rom_out <= 32'h80220242; 
@@ -113,7 +113,7 @@ assign data_out = rom_out;
             8'b00011101: rom_out <= 32'h803D1D5D;
             8'b00011110: rom_out <= 32'h803E1E5E;
             8'b00011111: rom_out <= 32'h803F1F5F;
-            // Stage-1
+            // Stage-1 (verified!)
             8'b00100000: rom_out <= 32'hA0504060; // muladd
             8'b00100001: rom_out <= 32'hC0504061; // mulsub
             8'b00100010: rom_out <= 32'hA0584862;
@@ -245,40 +245,42 @@ assign data_out = rom_out;
             8'b10011101: rom_out <= 32'hCC7E765E;
             8'b10011110: rom_out <= 32'hAE7F7757;
             8'b10011111: rom_out <= 32'hCE7F775F;
-            // Stage-5 (only half are useful)
-            8'b10100000: rom_out <= 32'hC0504088; // FFT_out: 16
-            8'b10100001: rom_out <= 32'hC1514189; // FFT_out: 17
-            8'b10100010: rom_out <= 32'hC252428A; // FFT_out: 18
-            8'b10100011: rom_out <= 32'hC353438B; // FFT_out: 19
-            8'b10100100: rom_out <= 32'hC454448C; // FFT_out: 20
-            8'b10100101: rom_out <= 32'hC555458D; // FFT_out: 21
-            8'b10100110: rom_out <= 32'hC656468E; // FFT_out: 22
-            8'b10100111: rom_out <= 32'hC757478F; // FFT_out: 23
-            8'b10101000: rom_out <= 32'hA8584880; // FFT_out: 8
-            8'b10101001: rom_out <= 32'hA9594981; // FFT_out: 9
-            8'b10101010: rom_out <= 32'hAA5A4A82; // FFT_out: 10
-            8'b10101011: rom_out <= 32'hAB5B4B83; // FFT_out: 11
-            8'b10101100: rom_out <= 32'hAC5C4C84; // FFT_out: 12
-            8'b10101101: rom_out <= 32'hAD5D4D85; // FFT_out: 13
-            8'b10101110: rom_out <= 32'hAE5E4E86; // FFT_out: 14
-            8'b10101111: rom_out <= 32'hAF5F4F87; // FFT_out: 15
-            // MAX ((s3), s2, s1, d)  ith iteration 
-            8'b10110000: rom_out <= 32'hE0_90_88_B0; // (i-1)th TOP Vs. ith BOTTOM
-            8'b10110001: rom_out <= 32'hE0_91_89_B1; 
-            8'b10110010: rom_out <= 32'hE0_92_8A_B2; 
-            8'b10110011: rom_out <= 32'hE0_93_8B_B3;
-            8'b10110100: rom_out <= 32'hE0_94_8C_B4;
-            8'b10110101: rom_out <= 32'hE0_95_8D_B5;
-            8'b10110110: rom_out <= 32'hE0_96_8E_B6;
-            8'b10110111: rom_out <= 32'hE0_97_8F_B7;
-            8'b10111000: rom_out <= 32'hE0_A0_B0_B0; // above results Vs. alpha[i]
-            8'b10111001: rom_out <= 32'hE0_A1_B1_B1;
-            8'b10111010: rom_out <= 32'hE0_A2_B2_B2;
-            8'b10111011: rom_out <= 32'hE0_A3_B3_B3;
-            8'b10111100: rom_out <= 32'hE0_A4_B4_B4;
-            8'b10111101: rom_out <= 32'hE0_A5_B5_B5;
-            8'b10111110: rom_out <= 32'hE0_A6_B6_B6;
-            8'b10111111: rom_out <= 32'hE0_A7_B7_B7;
+            // Stage-5 (FFT clock-wise shift first, then output the middle range!) 
+            // Pa (BOTTOM)
+            8'b10100000: rom_out <= 32'hA0504080; // FFT_out: 0
+            8'b10100001: rom_out <= 32'hA1514181; // FFT_out: 1
+            8'b10100010: rom_out <= 32'hA2524282; // FFT_out: 2
+            8'b10100011: rom_out <= 32'hA3534383; // FFT_out: 3
+            8'b10100100: rom_out <= 32'hA4544484; // FFT_out: 4
+            8'b10100101: rom_out <= 32'hA5554585; // FFT_out: 5
+            8'b10100110: rom_out <= 32'hA6564686; // FFT_out: 6
+            8'b10100111: rom_out <= 32'hA7574787; // FFT_out: 7
+            // Pb (TOP)
+            8'b10101000: rom_out <= 32'hC8584888; // FFT_out: 24
+            8'b10101001: rom_out <= 32'hC9594989; // FFT_out: 25
+            8'b10101010: rom_out <= 32'hCA5A4A8A; // FFT_out: 26
+            8'b10101011: rom_out <= 32'hCB5B4B8B; // FFT_out: 27
+            8'b10101100: rom_out <= 32'hCC5C4C8C; // FFT_out: 28
+            8'b10101101: rom_out <= 32'hCD5D4D8D; // FFT_out: 29
+            8'b10101110: rom_out <= 32'hCE5E4E8E; // FFT_out: 30
+            8'b10101111: rom_out <= 32'hCF5F4F8F; // FFT_out: 31
+            // MAX (s3, s2, s1, d)  ith iteration 
+            8'b10110000: rom_out <= 32'hE0_A0_98_A8; // alpha[k-1] Vs. previous TOP 
+            8'b10110001: rom_out <= 32'hE0_A1_99_A9;
+            8'b10110010: rom_out <= 32'hE0_A2_9A_AA; 
+            8'b10110011: rom_out <= 32'hE0_A3_9B_AB;
+            8'b10110100: rom_out <= 32'hE0_A4_9C_AC;
+            8'b10110101: rom_out <= 32'hE0_A5_9D_AD;
+            8'b10110110: rom_out <= 32'hE0_A6_9E_AE;
+            8'b10110111: rom_out <= 32'hE0_A7_9F_AF;
+            8'b10111000: rom_out <= 32'hE0_A8_80_A8; // above results Vs. current BOTTOM
+            8'b10111001: rom_out <= 32'hE0_A9_81_A9;
+            8'b10111010: rom_out <= 32'hE0_AA_82_AA;
+            8'b10111011: rom_out <= 32'hE0_AB_83_AB;
+            8'b10111100: rom_out <= 32'hE0_AC_84_AC;
+            8'b10111101: rom_out <= 32'hE0_AD_85_AD;
+            8'b10111110: rom_out <= 32'hE0_AE_86_AE;
+            8'b10111111: rom_out <= 32'hE0_AF_87_AF;
             // Null
             8'b11010000: rom_out <= 32'h0000_0000;
             8'b11010001: rom_out <= 32'h0000_0000;
@@ -499,40 +501,42 @@ assign data_out = rom_out;
             8'b10011101: rom_out <= 32'hCC7E765E;
             8'b10011110: rom_out <= 32'hAE7F7757;
             8'b10011111: rom_out <= 32'hCE7F775F;
-            // Stage-5 (only half are useful)
-            8'b10100000: rom_out <= 32'hC0504098; // FFT_out: 16
-            8'b10100001: rom_out <= 32'hC1514199; // FFT_out: 17
-            8'b10100010: rom_out <= 32'hC252429A; // FFT_out: 18
-            8'b10100011: rom_out <= 32'hC353439B; // FFT_out: 19
-            8'b10100100: rom_out <= 32'hC454449C; // FFT_out: 20
-            8'b10100101: rom_out <= 32'hC555459D; // FFT_out: 21
-            8'b10100110: rom_out <= 32'hC656469E; // FFT_out: 22
-            8'b10100111: rom_out <= 32'hC757479F; // FFT_out: 23
-            8'b10101000: rom_out <= 32'hA8584890; // FFT_out: 8
-            8'b10101001: rom_out <= 32'hA9594991; // FFT_out: 9
-            8'b10101010: rom_out <= 32'hAA5A4A92; // FFT_out: 10
-            8'b10101011: rom_out <= 32'hAB5B4B93; // FFT_out: 11
-            8'b10101100: rom_out <= 32'hAC5C4C94; // FFT_out: 12
-            8'b10101101: rom_out <= 32'hAD5D4D95; // FFT_out: 13
-            8'b10101110: rom_out <= 32'hAE5E4E96; // FFT_out: 14
-            8'b10101111: rom_out <= 32'hAF5F4F97; // FFT_out: 15
-            // MAX ((s3), s2, s1, d)  (i+1)th iteration 
-            8'b10110000: rom_out <= 32'hE0_90_88_B0; // ith TOP Vs. (i+1)th BOTTOM
-            8'b10110001: rom_out <= 32'hE0_91_89_B1; 
-            8'b10110010: rom_out <= 32'hE0_92_8A_B2; 
-            8'b10110011: rom_out <= 32'hE0_93_8B_B3;
-            8'b10110100: rom_out <= 32'hE0_94_8C_B4;
-            8'b10110101: rom_out <= 32'hE0_95_8D_B5;
-            8'b10110110: rom_out <= 32'hE0_96_8E_B6;
-            8'b10110111: rom_out <= 32'hE0_97_8F_B7;
-            8'b10111000: rom_out <= 32'hE0_A0_B0_B0; // above results Vs. alpha[i+1]
-            8'b10111001: rom_out <= 32'hE0_A1_B1_B1;
-            8'b10111010: rom_out <= 32'hE0_A2_B2_B2;
-            8'b10111011: rom_out <= 32'hE0_A3_B3_B3;
-            8'b10111100: rom_out <= 32'hE0_A4_B4_B4;
-            8'b10111101: rom_out <= 32'hE0_A5_B5_B5;
-            8'b10111110: rom_out <= 32'hE0_A6_B6_B6;
-            8'b10111111: rom_out <= 32'hE0_A7_B7_B7;
+            // Stage-5 (FFT clock-wise shift first, then output the middle range!) 
+            // Pa (BOTTOM)
+            8'b10100000: rom_out <= 32'hA0504090; // FFT_out: 0
+            8'b10100001: rom_out <= 32'hA1514191; // FFT_out: 1
+            8'b10100010: rom_out <= 32'hA2524292; // FFT_out: 2
+            8'b10100011: rom_out <= 32'hA3534393; // FFT_out: 3
+            8'b10100100: rom_out <= 32'hA4544494; // FFT_out: 4
+            8'b10100101: rom_out <= 32'hA5554595; // FFT_out: 5
+            8'b10100110: rom_out <= 32'hA6564696; // FFT_out: 6
+            8'b10100111: rom_out <= 32'hA7574797; // FFT_out: 7            
+            // Pb (TOP)
+            8'b10101000: rom_out <= 32'hC8584898; // FFT_out: 24
+            8'b10101001: rom_out <= 32'hC9594999; // FFT_out: 25
+            8'b10101010: rom_out <= 32'hCA5A4A9A; // FFT_out: 26
+            8'b10101011: rom_out <= 32'hCB5B4B9B; // FFT_out: 27
+            8'b10101100: rom_out <= 32'hCC5C4C9C; // FFT_out: 28
+            8'b10101101: rom_out <= 32'hCD5D4D9D; // FFT_out: 29
+            8'b10101110: rom_out <= 32'hCE5E4E9E; // FFT_out: 30
+            8'b10101111: rom_out <= 32'hCF5F4F9F; // FFT_out: 31
+            // MAX (s3, s2, s1, d)  (i+1)th iteration 
+            8'b10110000: rom_out <= 32'hE0_A0_88_A8; // alpha[k-1] Vs. previous TOP 
+            8'b10110001: rom_out <= 32'hE0_A1_89_A9; 
+            8'b10110010: rom_out <= 32'hE0_A2_8A_AA; 
+            8'b10110011: rom_out <= 32'hE0_A3_8B_AB;
+            8'b10110100: rom_out <= 32'hE0_A4_8C_AC;
+            8'b10110101: rom_out <= 32'hE0_A5_8D_AD;
+            8'b10110110: rom_out <= 32'hE0_A6_8E_AE;
+            8'b10110111: rom_out <= 32'hE0_A7_8F_AF;
+            8'b10111000: rom_out <= 32'hE0_A8_90_A8; // above results Vs. current BOTTOM
+            8'b10111001: rom_out <= 32'hE0_A9_91_A9;
+            8'b10111010: rom_out <= 32'hE0_AA_92_AA;
+            8'b10111011: rom_out <= 32'hE0_AB_93_AB;
+            8'b10111100: rom_out <= 32'hE0_AC_94_AC;
+            8'b10111101: rom_out <= 32'hE0_AD_95_AD;
+            8'b10111110: rom_out <= 32'hE0_AE_96_AE;
+            8'b10111111: rom_out <= 32'hE0_AF_97_AF;            
             // Null
             8'b11010000: rom_out <= 32'h0000_0000;
             8'b11010001: rom_out <= 32'h0000_0000;
