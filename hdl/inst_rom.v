@@ -21,12 +21,13 @@
 `include "parameters.vh"
 
 module inst_rom(
-    clk, en, iter, addr, data_out
+    clk, en, addr, data_out
     );
 
 input clk;
 input en;
-input [7:0] iter;
+//input [2:0] state;
+//input [7:0] iter;
 input [7:0] addr; // 2^8 = 256 instructions
 output [`INST_WIDTH*2-1:0] data_out;
 
@@ -40,46 +41,13 @@ assign data_out = rom_out;
 
    always @(posedge clk)
       if (en)
-         if (iter%2 == 0)
+//         if (iter%2 == 0)
          case (addr) // Be careful about the sign bit and fixed-point values
             // Demo
 //            8'b00000000: rom_out <= 32'h80_01_00_80; // CMPLX_MULT (opcode = 100)
 //            8'b00000001: rom_out <= 32'h80_03_02_81; // CMPLX_MULT (opcode = 100)
 //            8'b00000010: rom_out <= 32'h80_05_04_82; // CMPLX_MULT (opcode = 100)
-            // 8-pt example
-//            8'b00000000: rom_out <= 32'h80000040; // mul 
-//            8'b00000001: rom_out <= 32'h80010141; // mul
-//            8'b00000010: rom_out <= 32'h80020242; // mul
-//            8'b00000011: rom_out <= 32'h80030343; // mul
-//            8'b00000100: rom_out <= 32'h80040444; // mul
-//            8'b00000101: rom_out <= 32'h80050545; // mul
-//            8'b00000110: rom_out <= 32'h80060646; // mul
-//            8'b00000111: rom_out <= 32'h80070747; // mul
-//            8'b00001000: rom_out <= 32'hA0444048; // muladd
-//            8'b00001001: rom_out <= 32'hC0444049; // mulsub
-//            8'b00001010: rom_out <= 32'hA046424A;
-//            8'b00001011: rom_out <= 32'hC046424B;
-//            8'b00001100: rom_out <= 32'hA045414C;
-//            8'b00001101: rom_out <= 32'hC045414D;
-//            8'b00001110: rom_out <= 32'hA047434E;
-//            8'b00001111: rom_out <= 32'hC047434F;
-//            8'b00010000: rom_out <= 32'hA04A4850;
-//            8'b00010001: rom_out <= 32'hC04A4852;
-//            8'b00010010: rom_out <= 32'hA24B4951;
-//            8'b00010011: rom_out <= 32'hC24B4953;
-//            8'b00010100: rom_out <= 32'hA04E4C54;
-//            8'b00010101: rom_out <= 32'hC04E4C56;
-//            8'b00010110: rom_out <= 32'hA24F4D55;
-//            8'b00010111: rom_out <= 32'hC24F4D57;
-//            8'b00011000: rom_out <= 32'hA0545058;
-//            8'b00011001: rom_out <= 32'hC054505C;
-//            8'b00011010: rom_out <= 32'hA1565259;
-//            8'b00011011: rom_out <= 32'hC156525D;
-//            8'b00011100: rom_out <= 32'hA255515A;
-//            8'b00011101: rom_out <= 32'hC255515E;
-//            8'b00011110: rom_out <= 32'hA357535B;
-//            8'b00011111: rom_out <= 32'hC357535F;
-            // SCD Instructions
+            /*** SCD Instructions ***/
             // 32 element-wise complex multiplications (verified!)
             8'b00000000: rom_out <= 32'h80200040; // mul 
             8'b00000001: rom_out <= 32'h80210141; 
@@ -247,7 +215,7 @@ assign data_out = rom_out;
             8'b10011111: rom_out <= 32'hCE7F775F;
             // Stage-5 (FFT clock-wise shift first, then output the middle range!) 
             // Pa (BOTTOM)
-            8'b10100000: rom_out <= 32'hA0504080; // FFT_out: 0
+            8'b10100000: rom_out <= 32'hA0504080; // FFT_out: 0 
             8'b10100001: rom_out <= 32'hA1514181; // FFT_out: 1
             8'b10100010: rom_out <= 32'hA2524282; // FFT_out: 2
             8'b10100011: rom_out <= 32'hA3534383; // FFT_out: 3
@@ -264,23 +232,23 @@ assign data_out = rom_out;
             8'b10101101: rom_out <= 32'hCD5D4D8D; // FFT_out: 29
             8'b10101110: rom_out <= 32'hCE5E4E8E; // FFT_out: 30
             8'b10101111: rom_out <= 32'hCF5F4F8F; // FFT_out: 31
-            // MAX (s3, s2, s1, d)  ith iteration 
-            8'b10110000: rom_out <= 32'hE0_A0_98_A8; // alpha[k-1] Vs. previous TOP 
-            8'b10110001: rom_out <= 32'hE0_A1_99_A9;
-            8'b10110010: rom_out <= 32'hE0_A2_9A_AA; 
-            8'b10110011: rom_out <= 32'hE0_A3_9B_AB;
-            8'b10110100: rom_out <= 32'hE0_A4_9C_AC;
-            8'b10110101: rom_out <= 32'hE0_A5_9D_AD;
-            8'b10110110: rom_out <= 32'hE0_A6_9E_AE;
-            8'b10110111: rom_out <= 32'hE0_A7_9F_AF;
-            8'b10111000: rom_out <= 32'hE0_A8_80_A8; // above results Vs. current BOTTOM
-            8'b10111001: rom_out <= 32'hE0_A9_81_A9;
-            8'b10111010: rom_out <= 32'hE0_AA_82_AA;
-            8'b10111011: rom_out <= 32'hE0_AB_83_AB;
-            8'b10111100: rom_out <= 32'hE0_AC_84_AC;
-            8'b10111101: rom_out <= 32'hE0_AD_85_AD;
-            8'b10111110: rom_out <= 32'hE0_AE_86_AE;
-            8'b10111111: rom_out <= 32'hE0_AF_87_AF;
+            // MAX (s3, s2, s1, d)  alpha[k-1]^2 Vs. |FFT_out|^2
+            8'b10110000: rom_out <= 32'hE0_90_80_A0; 
+            8'b10110001: rom_out <= 32'hE0_91_81_A1; 
+            8'b10110010: rom_out <= 32'hE0_92_82_A2; 
+            8'b10110011: rom_out <= 32'hE0_93_83_A3; 
+            8'b10110100: rom_out <= 32'hE0_94_84_A4; 
+            8'b10110101: rom_out <= 32'hE0_95_85_A5; 
+            8'b10110110: rom_out <= 32'hE0_96_86_A6; 
+            8'b10110111: rom_out <= 32'hE0_97_87_A7; 
+            8'b10111000: rom_out <= 32'hE0_98_88_A8; 
+            8'b10111001: rom_out <= 32'hE0_99_89_A9; 
+            8'b10111010: rom_out <= 32'hE0_9A_8A_AA; 
+            8'b10111011: rom_out <= 32'hE0_9B_8B_AB; 
+            8'b10111100: rom_out <= 32'hE0_9C_8C_AC; 
+            8'b10111101: rom_out <= 32'hE0_9D_8D_AD; 
+            8'b10111110: rom_out <= 32'hE0_9E_8E_AE; 
+            8'b10111111: rom_out <= 32'hE0_9F_8F_AF; 
             // Null
             8'b11010000: rom_out <= 32'h0000_0000;
             8'b11010001: rom_out <= 32'h0000_0000;
@@ -332,7 +300,7 @@ assign data_out = rom_out;
             8'b11111111: rom_out <= 32'h0000_0000;
             default: rom_out <= 32'h0000_0000;
          endcase
-         
+/***         
          else
          case (addr) 
             // SCD Instructions
@@ -588,5 +556,5 @@ assign data_out = rom_out;
             8'b11111111: rom_out <= 32'h0000_0000;
             default: rom_out <= 32'h0000_0000;
          endcase
-
+***/
 endmodule
