@@ -30,7 +30,7 @@ module tb_pe_array;
     reg din_overlay_v; 
     reg [`DATA_WIDTH*2-1:0] din_overlay; 
 
-//    wire dout_overlay_v; 
+    wire dout_overlay_v; 
     wire [`DATA_WIDTH*2-1:0] dout_overlay; 
 
     // Instantiate the Unit Under Test (UUT)
@@ -40,7 +40,7 @@ module tb_pe_array;
     .load(load), 
     .din_overlay_v(din_overlay_v), 
     .din_overlay(din_overlay), 
-//    .dout_overlay_v(dout_overlay_v), 
+    .dout_overlay_v(dout_overlay_v), 
     .dout_overlay(dout_overlay)
     );
 
@@ -89,8 +89,8 @@ module tb_pe_array;
         // Add stimulus here
         #20; rst = 0; 
         // Load the data  
-        data_file = $fopen("array_input_hex.txt", "rb"); //read mode, binary
-//        data_file = $fopen("array16_input_hex.txt", "rb"); //read mode, binary
+//        data_file = $fopen("array_input_hex.txt", "rb"); //read mode, binary (128-PE array -> 256*32*2)
+        data_file = $fopen("array16_input_hex.txt", "rb"); //read mode, binary (8-PE array -> 16*32*2)
         if (data_file == `NULL) begin
             $display("data_file handle was NULL");
             $finish;
